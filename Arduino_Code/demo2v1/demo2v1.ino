@@ -194,47 +194,58 @@ void loop() {
 
   // This is the states where the robot acquires the beacon
   if (state == 1){
-    rotateRight();
     xAngle = data;
+    Serial.println(xAngle);
     // Rotate the robot in 45 degree increments to find the beacon in the camera view
     while(xAngle == 255){
+      digitalWrite(motor1Dir, LOW); //High for CCW
+      digitalWrite(motor2Dir, LOW); //Low for CCW
       int delayCount = (45 * 6.6071) + 57.5;
-      analogWrite(motor2Speed, 100);
-      analogWrite(motor1Speed, 100);
+      analogWrite(motor2Speed, 65);
+      analogWrite(motor1Speed, 65);
       delay(delayCount);
       analogWrite(motor2Speed, 0);
       analogWrite(motor1Speed, 0);
-      delay(750);
+      delay(1500);
       xAngle = data;
+      Serial.println(xAngle);
+      if(xAngle != 255){
+        xAngle = (xAngle/(double)4)-27;
+      }
     }
+    
     // Move the robot to face the beacon
-    while(xAngle > 3 or xAngle < -3){
+    while((xAngle > 3) or (xAngle < -3)){
+      
       // Convert the received data to an angle
-      xAngle = (xAngle/4)-27;
       // Determine which way to spin based on the orientation of the robot with respect to the beacon
       if(xAngle > 0){
-        digitalWrite(motor1Dir, HIGH); //High for CW
+        digitalWrite(motor1Dir, LOW); //High for CCW
         digitalWrite(motor2Dir, LOW); //Low for CCW
-      }else{
-        digitalWrite(motor1Dir, LOW); //LOW for CCW
+      }if(xAngle < 0){
+        digitalWrite(motor1Dir, HIGH); //LOW for CW
         digitalWrite(motor2Dir, HIGH); //HIGH for CW
       }
       Serial.println(xAngle);
       // Calculate the move the robot needs to make
       int delayCount = (xAngle * 6.6071) + 57.5;
-      analogWrite(motor2Speed, 100);
-      analogWrite(motor1Speed, 100);
+      analogWrite(motor2Speed, 65);
+      analogWrite(motor1Speed, 65);
       delay(delayCount);
       analogWrite(motor2Speed, 0);
       analogWrite(motor1Speed, 0);
       // Wait to get a high quality image and update the angle position variable
-      delay(750);
+      delay(1500);
       xAngle = data;
+      xAngle = (xAngle/(double)4)-27;      
     }
-    // Once the robot is facing the beacon stop the motors and transition to the next program state
-    analogWrite(motor1Speed, 0);
-    analogWrite(motor2Speed, 0);
-    state = 2;
+    if(((xAngle != 0) and (xAngle < 3) and (xAngle > -3))){
+      // Once the robot is facing the beacon stop the motors and transition to the next program state
+      analogWrite(motor1Speed, 0);
+      analogWrite(motor2Speed, 0);
+      state = 0;
+    }
+    
   }
   // This is the state where the robot moves to the beacon
   else if(state == 2){
