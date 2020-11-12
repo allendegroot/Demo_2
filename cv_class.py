@@ -15,12 +15,12 @@ import smbus2
 lcd_columns = 16
 lcd_rows = 2
 # Initialise I2C bus.
-# i2c = busio.I2C(board.SCL, board.SDA)
+i2c = busio.I2C(board.SCL, board.SDA)
 
 # Initialise the LCD class
 #lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 #lcd.clear()
-#bus = smbus2.SMBus(1)
+bus = smbus2.SMBus(1)
 
 #define constants
 xwidth = 54 * (math.pi/180) #radians
@@ -63,11 +63,12 @@ class angle_detection():
         self.reported_angle_degrees = "No Aruco Found"
         self.aruco_found = "No Aruco Found"
         end_time = time.time() + self.refresh_speed;
+        print("Here1")
+        bus.write_byte(0x08, 255);
         while(time.time() < end_time):
             self.camera.capture(self.rawCapture, format="bgr")
             image = self.rawCapture.array
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             corners, ids, rejectedImgPoints = aruco.detectMarkers(image, self.aruco_dict, parameters=self.parameters)
             if(type(ids) == numpy.ndarray):
                 self.aruco_found = "Found Aruco!"
@@ -80,8 +81,10 @@ class angle_detection():
 
                 xangle = (xdist/image.shape[1]) * xwidth
                 yangle = (ydist/image.shape[0]) * ywidth
-                if(xcenter > 990):
-                    xangle*=-1
+                print(xcenter)
+                #if(xcenter > 960):
+                    #xangle*=-1
+                    #print("Negative")
                 # Calculate the angle from teh z-axis to the center point
                 # First calculate distance (in pixels to screen) on z-axis
                 a1 = xdist/math.tan(xangle)
@@ -97,10 +100,10 @@ class angle_detection():
                     self.reported_angle_degrees *= -1
                     
                 # Start debug
-                print("Angle to z-axis from Aruco Center:", self.reported_angle_degrees)
-                print("X-axis Angle: ", xangle *180/math.pi)
-                print("Y-axis Angle: ", yangle *180/math.pi)
-                print(xcenter)
+                #print("Angle to z-axis from Aruco Center:", self.reported_angle_degrees)
+                #print("X-axis Angle: ", xangle *180/math.pi)
+                #print("Y-axis Angle: ", yangle *180/math.pi)
+                #print(xcenter)
                 # lcd.text_direction = lcd.LEFT_TO_RIGHT;
                 # lcd.message =  "Beacon Detected" + "\n" + str(xangle * 180/math.pi)
                 # cv2.imshow("Image", image)
@@ -110,7 +113,20 @@ class angle_detection():
                 pixel_dist_cm = aruco_height / vertical_dist_pixels
                 horizontal_dist = int(abs(xcenter - (1920/2))) * pixel_dist_cm
                 total_distance = horizontal_dist/math.sin(xangle)
-                print("Total Distance: ", total_distance)
+                x_angle_deg = xangle * 180/math.pi
+                if(xcenter < image.shape[1]/2):
+                    x_angle_deg *= -1
+                #print("Total Distance: ", total_distance)
+                state = bus.read_byte(0x08)
+                print(x_angle_deg)
+                #print("State:", state)
+                if state == 1:
+                    bus.write_byte(0x08,int(4*(x_angle_deg+27)))
+                elif state == 2:
+                    bus.write_byte(0x08,int(254 * (total_distance/10)))
+            else:
+                bus.write_byte(0x08, 255)
+                #print("Here")
             self.rawCapture.truncate(0)
                 
                 
