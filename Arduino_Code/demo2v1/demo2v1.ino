@@ -291,15 +291,16 @@ void loop() {
   else if(state == 3){
     
   }
-
- 
- 
 }
 
 //ISR for the right wheel/encoder
 void rightWheelCount(){
 
 rightTimeNew = micros();
+
+//Current Right Wheel Position
+rightWheelPosNew = (2*pi*(double)countRight) / countsPerRot;
+currentPosition = (-1*rightWheelPosNew) * radius;
 
 //Right wheel is moving CCW
 if (digitalRead(motor1B) == digitalRead(motor1A)){
@@ -314,12 +315,34 @@ if (digitalRead(motor1B) != digitalRead(motor1A)){
 //Calcuate Time spent inside the ISR, and then calculate angular velocity and velocity
 
 rightDeltaT = (double)rightTimeNew - (double)rightTimeOld;
+
+if (rightDeltaT > 0.001){
+  
+ angVelocRight = ((rightWheelPosNew - rightWheelPosOld) / ((double)rightDeltaT) * pow(10,6));
+ velocityRight = angVelocRight * radius;
+ rightTimeOld = rightTimeNew;
+ rightDeltaT = (double)rightTimeNew - (double)rightTimeOld; 
+ rightWheelPosOld = rightWheelPosNew;
+ 
 }
+
+}
+
+//Calcuate Time spent inside the ISR, and then calculate angular velocity and velocity
+
+
+
 ////////////////////////////////////////////////////////////
 
 //ISR for the left wheel/encoder
 void leftWheelCount(){
+
 leftTimeNew = micros();
+
+//Current Left Wheel Position
+
+leftWheelPosNew = (2*pi*(double)countLeft) / countsPerRot;
+
 //Left wheel is moving CCW
 if (digitalRead(motor2B) == digitalRead(motor2A)){
   countLeft -= 1;
@@ -329,7 +352,17 @@ if (digitalRead(motor2B) != digitalRead(motor2A)){
   countLeft += 1;
 }
 leftDeltaT = ((double)leftTimeNew - (double)leftTimeOld);
+
+//Calcuate Time spent inside the ISR, and then calculate angular velocity and velocity
+if (leftDeltaT > 0.001){
+  angVelocLeft = (leftWheelPosNew - leftWheelPosOld) / ((double)leftDeltaT * pow(10,6));
+  velocityLeft = angVelocLeft * radius;
+  leftTimeOld = leftTimeNew;
+  leftWheelPosOld = leftWheelPosNew;
 }
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 double linearController(double velocityRight){
   // New error is used in the proportional term
