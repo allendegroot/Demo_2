@@ -20,7 +20,8 @@ double xAngle;
 
 //Distance variable
 double distanceToBeacon;
-
+// Time through to only capture 1 distance
+int timeThrough;
 
 long oldPosition  = -999;
 const float pi = 3.1415926535898;
@@ -28,7 +29,7 @@ const float pi = 3.1415926535898;
 
 // Desired linear velocity for the motors
 double desiredVelocity = 1;
-double KpV = 5.34651664;
+double KpV = 3.34651664;
 double KiV = 0.0038853330385174;;
 double KdV = 2.5256354;
 double deltaError = 0;
@@ -201,12 +202,12 @@ void loop() {
       digitalWrite(motor1Dir, LOW); //High for CCW
       digitalWrite(motor2Dir, LOW); //Low for CCW
       int delayCount = (45 * 6.6071) + 57.5;
-      analogWrite(motor2Speed, 65);
-      analogWrite(motor1Speed, 65);
+      analogWrite(motor2Speed, 110);
+      analogWrite(motor1Speed, 110);
       delay(delayCount);
       analogWrite(motor2Speed, 0);
       analogWrite(motor1Speed, 0);
-      delay(1500);
+      delay(1000);
       xAngle = data;
       Serial.println(xAngle);
       if(xAngle != 255){
@@ -228,14 +229,14 @@ void loop() {
       }
       Serial.println(xAngle);
       // Calculate the move the robot needs to make
-      int delayCount = (xAngle * 6.6071) + 57.5;
-      analogWrite(motor2Speed, 65);
-      analogWrite(motor1Speed, 65);
+      int delayCount = (abs(xAngle) * 6.6071) + 57.5;
+      analogWrite(motor2Speed, 100);
+      analogWrite(motor1Speed, 100);
       delay(delayCount);
       analogWrite(motor2Speed, 0);
       analogWrite(motor1Speed, 0);
       // Wait to get a high quality image and update the angle position variable
-      delay(1500);
+      delay(1000);
       xAngle = data;
       xAngle = (xAngle/(double)4)-27;      
     }
@@ -243,14 +244,23 @@ void loop() {
       // Once the robot is facing the beacon stop the motors and transition to the next program state
       analogWrite(motor1Speed, 0);
       analogWrite(motor2Speed, 0);
-      state = 0;
+      state = 2;
+      delay(700);
     }
     
   }
   // This is the state where the robot moves to the beacon
   else if(state == 2){
-    // Update the linear position variable
-    distanceToBeacon = data;
+    if(timeThrough == 1){
+      distanceToBeacon = data;
+      distanceToBeacon = distanceToBeacon * (304.8/254);
+      distanceToBeacon = distanceToBeacon - 10;
+      distanceToBeacon = distanceToBeacon * 0.0328084;
+      timeThrough = 0;
+    }
+    
+    digitalWrite(motor1Dir, HIGH); //High for CW
+    digitalWrite(motor2Dir, LOW); //Low for CCW
     double time = millis() / pow(10, 3);
     double Vbar_a = 8;
     // Gets the requested velocity from the outer loop controller
@@ -264,14 +274,14 @@ void loop() {
        motorSpeed = 0;
     }
 
-  // Sends the actual commands to the motors
-  analogWrite(motor2Speed, motorSpeed);
-  analogWrite(motor1Speed, motorSpeed);
+    // Sends the actual commands to the motors
+    analogWrite(motor2Speed, motorSpeed);
+    analogWrite(motor1Speed, motorSpeed);
   
 
 
-  double rhoDot = -1 * velocityRight;
-    if(distanceToBeacon <= 5){
+    double rhoDot = -1 * velocityRight;
+    if((distanceToBeacon <= 20) and (distanceToBeacon != 0)){
       analogWrite(motor1Speed, 0);
       analogWrite(motor2Speed, 0);
       state = 3;
