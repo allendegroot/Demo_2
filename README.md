@@ -13,4 +13,8 @@ This file contians a class that runs a loop which constantly takes a picture and
 
 Each of these are converted to an 8 bit value which is then converted back on the Arduino side. This is the core functionality of the CV code.
 
+### Arduino Code
+
+This code can be found in teh `Arduino Code` folder. Descriptions as to each file's purpose adn usage can be found there.
+
 
