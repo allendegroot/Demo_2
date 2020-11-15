@@ -15,6 +15,14 @@ Each of these are converted to an 8 bit value which is then converted back on th
 
 ### Arduino Code
 
-This code can be found in teh `Arduino Code` folder. Descriptions as to each file's purpose adn usage can be found there.
+This code can be found in the `Arduino Code` folder. Descriptions as to each file's purpose adn usage can be found there.
+
+### Grho_transferFn_graphing.m
+
+This is the MATLAB script that is used to determine a transfer function for the linear velocity of the robot. It compares data (in graphical form) to a simple Simulink diagram to produce the transfer function for the robot. This file was initially designed for demo 1 but there were some small tweaks made for this demonstration.
+
+### linvelocity_closedLoop.slx
+
+This is the Simulink diagram that was used to tune the closed loop response for the linear distance controller. This involves two individual controllers. The inner one takes the desired velocity for the robot and converts it to a PWM value that should be sent to the motors. The other controller takes the difference between the current and desired positions to determine what the velocity of the robot should be. This file was originally developed for demo 1, but some small tweaks and retuning had to be done for this demo.
 
 
