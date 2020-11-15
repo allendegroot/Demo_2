@@ -208,7 +208,7 @@ void loop() {
       delay(delayCount);
       analogWrite(motor2Speed, 0);
       analogWrite(motor1Speed, 0);
-      delay(1000);
+      delay(1500);
       xAngle = data;
       Serial.println(xAngle);
       if(xAngle != 255){
@@ -217,7 +217,7 @@ void loop() {
     }
     
     // Move the robot to face the beacon
-    while((xAngle > 3) or (xAngle < -3)){
+    while((xAngle > 2) or (xAngle < -2)){
       
       // Convert the received data to an angle
       // Determine which way to spin based on the orientation of the robot with respect to the beacon
@@ -230,18 +230,18 @@ void loop() {
       }
       Serial.println(xAngle);
       // Calculate the move the robot needs to make
-      int delayCount = (abs(xAngle) * 6.6071) + 57.5;
-      analogWrite(motor2Speed, 100);
-      analogWrite(motor1Speed, 100);
+      int delayCount = (abs(xAngle) * 10.6071) + 57.5;
+      analogWrite(motor2Speed, 50);
+      analogWrite(motor1Speed, 50);
       delay(delayCount);
       analogWrite(motor2Speed, 0);
       analogWrite(motor1Speed, 0);
       // Wait to get a high quality image and update the angle position variable
-      delay(1000);
+      delay(1500);
       xAngle = data;
       xAngle = (xAngle/(double)4)-27;      
     }
-    if(((xAngle != 0) and (xAngle < 3) and (xAngle > -3))){
+    if(((xAngle != (double)0.0) and (xAngle < 3) and (xAngle > -3))){
       // Once the robot is facing the beacon stop the motors and transition to the next program state
       analogWrite(motor1Speed, 0);
       analogWrite(motor2Speed, 0);
@@ -253,11 +253,9 @@ void loop() {
   // This is the state where the robot moves to the beacon
   else if(state == 2){
     if(timeThrough == 1){
-      Serial.println("Made it here");
       distanceToBeacon = data;
       distanceToBeacon = distanceToBeacon * (304.8/254);
-      distanceToBeacon = distanceToBeacon - 10;
-      distanceToBeacon = distanceToBeacon * 0.0328084;
+      distanceToBeacon = distanceToBeacon - 18;
       timeThrough = 0;
       desiredPosition = distanceToBeacon;
       currentPosition = 0;
@@ -265,35 +263,34 @@ void loop() {
     
     digitalWrite(motor1Dir, HIGH); //High for CW
     digitalWrite(motor2Dir, LOW); //Low for CCW
-    double time = millis() / pow(10, 3);
-    double Vbar_a = 8;
-    // Gets the requested velocity from the outer loop controller
-    desiredVelocity = linearDistanceController(currentPosition);
-    // Scales the motor value to be compatible with the pwm system
-    int motorSpeed = double((linearController(-1*velocityRight) / 15.2)) * 255;
-    // Ensures the motor value doesn't leave the allowable limits
-    if(motorSpeed > 255){
-      motorSpeed = 255;
-    }else if(motorSpeed < 8){
-       motorSpeed = 0;
-    }
-
-    // Sends the actual commands to the motors
-    analogWrite(motor2Speed, motorSpeed);
-    analogWrite(motor1Speed, motorSpeed);
-  
-
-
-    double rhoDot = -1 * velocityRight;
-    if(false){
-      analogWrite(motor1Speed, 0);
-      analogWrite(motor2Speed, 0);
-      state = 3;
-    }
+    int moveDelayCount = (distanceToBeacon * 11.25) + 8;
+    analogWrite(motor2Speed, 200);
+    analogWrite(motor1Speed, 200);
+    delay(moveDelayCount);
+    analogWrite(motor2Speed, 0);
+    analogWrite(motor1Speed, 0);
+    state = 3;
   }
   // This is the state where the robot circles the beacon
   else if(state == 3){
-    
+    digitalWrite(motor1Dir, HIGH); //LOW for CW
+    digitalWrite(motor2Dir, HIGH); //HIGH for CW
+    delay(300);
+    int delayCount = (90 * 6.6071) + 57.5;
+    analogWrite(motor2Speed, 90);
+    analogWrite(motor1Speed, 90);
+    delay(delayCount);
+    analogWrite(motor2Speed, 0);
+    analogWrite(motor1Speed, 0);
+    delay(300);
+    digitalWrite(motor1Dir, HIGH); //High for CW
+    digitalWrite(motor2Dir, LOW); //Low for CCW
+    analogWrite(motor2Speed, 150);
+    analogWrite(motor1Speed, 95);
+    delay(5750);
+    analogWrite(motor2Speed, 0);
+    analogWrite(motor1Speed, 0);
+    state = 0;
   }
 }
 
