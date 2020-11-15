@@ -2,7 +2,7 @@
 
 ## Directory Structure
 
-The CV code can be found quite easily in the `cv_class.py` file. This cna be found in the home directory. The code used for the Arduino is composed of a few files all of which cna be found in the 'Arduino Code' folder which is alos in the home directory. Each of these will be spoken about a little more below.
+The CV code can be found quite easily in the `cv_class.py` file. This cna be found in the home directory. The code used for the Arduino is composed of a few files all of which cna be found in the `Arduino Code` folder which is alos in the home directory. Each of these will be spoken about a little more below.
 
 ### cv_class.py
 
